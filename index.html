@@ -123,6 +123,7 @@
 
                 my_photos = data.response[3];
 
+
                 var likes = 0;
                 var commets = 0;
                 var top_photo = "";
@@ -143,10 +144,10 @@
                 }
 
                 var common_count = 0;
-                for(var i = 0;i<friends.items.length;i++) {
-                    if(friends.items[i].common_count> common_count) {
-                        common_count = friends.items[i].common_count;
-                        best_friend = friends.items[i];
+                for(var i = 0;i<viewer.friends.items.length;i++) {
+                    if(viewer.friends.items[i].common_count> common_count) {
+                        common_count = viewer.friends.items[i].common_count;
+                        best_friend = viewer.friends.items[i];
                     }
                 }
 
