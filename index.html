@@ -154,10 +154,17 @@
 
 
                 }
+
+                showPhotos();
               })
               .catch(error => {
 
               });
+        }
+
+        function showPhotos() {
+          $("#page").css("display","");
+          $("#LoginControl").remove();
         }
 
 
@@ -166,8 +173,8 @@
     </script>
 </head>
 <body style="background:white;">
-  <div class="text-center bg-white rounded-xl shadow-md overflow-hidden m-3">
-  <div id="LoginControl" class="md:flex">
+  <div id="LoginControl" class="text-center bg-white rounded-xl shadow-md overflow-hidden m-3">
+  <div class="md:flex">
     <div class="md:flex-shrink-0">
       <img class="h-48 w-full object-cover md:h-full md:w-48" src="5054499.jpg" >
     </div>
@@ -187,36 +194,57 @@
   </div>
 </div>
 
-  <div id="page" class="p-3 hidden m-3 mb-10 pb-10">
-      <p id="title" class="text-2xl text-center m-3">Сообщения из прошлого</p>
-      <div id="content" class="bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl p-3 text-center">
-          <div class="fa-3x">
-              <i class="fas fa-circle-notch fa-spin"></i>
+  <div style="display:none" id="page">
+    <div class="bg-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto py-16 sm:py-24 lg:py-32 lg:max-w-none">
+      <h2 class="text-2xl font-extrabold text-gray-900">Collections</h2>
+
+      <div class="mt-6 space-y-12 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-x-6">
+        <div class="group relative">
+          <div class="relative w-full h-80 bg-white rounded-lg overflow-hidden group-hover:opacity-75 sm:aspect-w-2 sm:aspect-h-1 sm:h-64 lg:aspect-w-1 lg:aspect-h-1">
+            <img src="https://tailwindui.com/img/ecommerce-images/home-page-02-edition-01.jpg" alt="Desk with leather desk pad, walnut desk organizer, wireless keyboard and mouse, and porcelain mug." class="w-full h-full object-center object-cover">
           </div>
+          <h3 class="mt-6 text-sm text-gray-500">
+            <a href="#">
+              <span class="absolute inset-0"></span>
+              Desk and Office
+            </a>
+          </h3>
+          <p class="text-base font-semibold text-gray-900">Work from home accessories</p>
+        </div>
+
+        <div class="group relative">
+          <div class="relative w-full h-80 bg-white rounded-lg overflow-hidden group-hover:opacity-75 sm:aspect-w-2 sm:aspect-h-1 sm:h-64 lg:aspect-w-1 lg:aspect-h-1">
+            <img src="https://tailwindui.com/img/ecommerce-images/home-page-02-edition-02.jpg" alt="Wood table with porcelain mug, leather journal, brass pen, leather key ring, and a houseplant." class="w-full h-full object-center object-cover">
+          </div>
+          <h3 class="mt-6 text-sm text-gray-500">
+            <a href="#">
+              <span class="absolute inset-0"></span>
+              Self-Improvement
+            </a>
+          </h3>
+          <p class="text-base font-semibold text-gray-900">Journals and note-taking</p>
+        </div>
+
+        <div class="group relative">
+          <div class="relative w-full h-80 bg-white rounded-lg overflow-hidden group-hover:opacity-75 sm:aspect-w-2 sm:aspect-h-1 sm:h-64 lg:aspect-w-1 lg:aspect-h-1">
+            <img src="https://tailwindui.com/img/ecommerce-images/home-page-02-edition-03.jpg" alt="Collection of four insulated travel bottles on wooden shelf." class="w-full h-full object-center object-cover">
+          </div>
+          <h3 class="mt-6 text-sm text-gray-500">
+            <a href="#">
+              <span class="absolute inset-0"></span>
+              Travel
+            </a>
+          </h3>
+          <p class="text-base font-semibold text-gray-900">Daily commute essentials</p>
+        </div>
       </div>
+    </div>
+  </div>
+</div>
   </div>
 
-  <ul id="menu" class="flex justify-between fixed w-full bottom-0 bg-white hidden">
-      <li class="flex-1 mr-2">
-        <a onclick="getMessages();return false;" id="messages" class="relative text-center block border border-blue-500 rounded py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white" href="#">
-            <i class="fas fa-envelope text-3xl"></i>
-            <div>Сообщения</div>
-            <span id="countMessage" class="hidden absolute text-xs font-semibold inline-block py-1 px-2 uppercase rounded text-green-600 bg-green-200 uppercase last:mr-0 mr-1" style="top:3px;right: 0px;">0</span>
-        </a>
-      </li>
-      <li class="flex-1 mr-2">
-        <a id="send" onclick="sendMess();return false;" class="text-center block border border-white rounded hover:border-gray-200 text-blue-500 hover:bg-gray-200 py-2 px-4" href="#">
-            <i class="fas fa-plus-square text-3xl"></i>
-            <div>Отправить</div>
-        </a>
-      </li>
-      <li class="flex-1 mr-2">
-        <a onclick="getFeed();return false;" id="feed" class="text-center block border border-white rounded hover:border-gray-200 text-blue-500 hover:bg-gray-200 py-2 px-4" href="#">
-            <i class="fas fa-chart-line text-3xl"></i>
-            <div>Лента</div>
-        </a>
-      </li>
-    </ul>
 
   <div style="position: fixed;left:99999px;width:700px" id="for_canvas"></div>
 
