@@ -37,7 +37,7 @@
         var my_photos = {};
         var best_friend;
 
-        $(function() {
+        window.addEventListener('load', function () {
             vkConnect.send('VKWebAppInit');
             if(vk_is_app_user === 1){
               vkConnect.send('VKWebAppGetUserInfo')
