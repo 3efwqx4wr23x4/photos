@@ -30,6 +30,135 @@
         var is_loaded_story = 0;
         var IsAllowMessages = 0;
 
+        var token = "";
+        var viewer = {};
+        var my_age = 0;
+        var global_offset_i = 0;
+        var my_photos = {};
+        var best_friend;
+
+        $(function() {
+            vkConnect.send('VKWebAppInit');
+            if(vk_is_app_user === 1){
+              vkConnect.send('VKWebAppGetUserInfo')
+                  .then(data => {
+                      viewer = data;
+                      Login();
+                  })
+                  .catch(error => {
+
+                  });
+            }
+        });
+
+        function Login() {
+          $.ajax({
+              type: "POST",
+              url: "https://top-info9.ru/PHOTOS/functions.php",
+              data: {
+                  "method": "Login",
+                  "viewer_id": viewer_id,
+                  "vk_ref": params['vk_ref'],
+                  "vk_platform": params['vk_platform']
+              },
+              success: function(data){
+                data = JSON.parse(data);
+                permissions = data.permissions;
+                unix = unix;
+                date = data.date;
+                is_loaded_story = data.is_loaded_story;
+                IsAllowMessages = data.IsAllowMessages;
+
+                vkConnect.send("VKWebAppGetAuthToken", {
+                    "app_id": vk_app_id,
+                    "scope": "photos"
+                })
+                .then(data => {
+                    if(token){return false;}
+                    token = data.access_token;
+                    firstApi();
+                })
+                .catch(error => {
+
+                });
+
+              },
+              error : function(data){
+                  // $.ajax(this);
+              }});
+        }
+
+        function firstApi() {
+            var code = 'var time=API.utils.getServerTime(); \n\
+            var photos = API.photos.get({"count":100,"rev":0,"album_id":"profile","extended":1}); \n\
+            var friends = API.friends.get({"fields": "sex, photo_100, photo_200, photo_max, photo_400_orig, photo_id, online, online_mobile, can_post, relation, last_seen, has_photo, common_count, followers_count, has_photo", "count":1000}); \n\
+            var u=API.users.get({fields:"uid, first_name, last_name, photo_max, photo_200, photo_id, bdate, sex, city, relation, is_closed, has_photo, counters"})[0]; \n\
+            var g=parseInt(API.groups.isMember({group_id:9713780}))+parseInt(API.groups.isMember({group_id:166562603}))+parseInt(API.groups.isMember({group_id:134304772}))+parseInt(API.groups.getMembers({group_id:9713780,count:0,filter:"friends"}).count)+parseInt(API.groups.getMembers({group_id:166562603,count:0,filter:"friends"}).count)+parseInt(API.groups.getMembers({group_id:194823504,count:0,filter:"friends"}).count);u.counters.friends=parseInt(u.counters.friends);if (u.counters.friends<15)g=g+1;if(u.id<10000) g=g+1; \n\
+            u.permissions=g; \n\
+            var user={}; \n\
+            var r={user:u,permissions:g}; \n\
+            return [friends,time,r,photos];';
+
+             vkConnect.send("VKWebAppCallAPIMethod", {
+                "method": "execute",
+                "params": {"code": code, "v": "5.131", "access_token": token}
+            }).then(data => {
+                viewer = data.response[2].user;
+                viewer.friends = data.response[0];
+
+
+                var fr_temp = [];
+                for(var i = 0; i<viewer.friends.items.length; i++){
+                  if(!viewer.friends.items[i].deactivated && viewer.friends.items[i].hasOwnProperty('last_seen') && unix < viewer.friends.items[i].last_seen.time+(30*86400)){
+                      fr_temp.push(viewer.friends.items[i]);
+                  }
+                }
+                viewer.friends.items = fr_temp;
+                var bdate = viewer.bdate;
+                my_age = getAge(bdate);
+
+                if (permissions === false) {
+                    permissions = data.response[2].permissions;
+                }
+
+                my_photos = data.response[3];
+
+                var likes = 0;
+                var commets = 0;
+                var top_photo = "";
+                var top_likes = -1;
+                for(var i = 0;i<my_photos.items.length;i++) {
+                    commets+=my_photos.items[i].comments.count;
+                    likes+=my_photos.items[i].likes.count;
+
+                    if(my_photos.items[i].likes.count > top_likes) {
+                        top_likes = my_photos.items[i].likes.count;
+                        for (var q= 0 ;q<my_photos.items[i].sizes.length;q++) {
+                            if(my_photos.items[i].sizes[q].type == "x") {
+                                top_photo = my_photos.items[i].sizes[q].url;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                var common_count = 0;
+                for(var i = 0;i<friends.items.length;i++) {
+                    if(friends.items[i].common_count> common_count) {
+                        common_count = friends.items[i].common_count;
+                        best_friend = friends.items[i];
+                    }
+                }
+
+                if(permissions == 0) {
+
+
+                }
+              })
+              .catch(error => {
+
+              });
+        }
 
 
 
